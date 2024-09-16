@@ -1,0 +1,33 @@
+﻿  pch.cpp
+  dllmain.cpp
+  GeoAlgorithmLib.cpp
+C:\Users\12527\source\repos\GeoAlgorithm\GeoAlgorithmLib\GeoAlgorithmLib.hpp(82,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file '/GeoAlgorithmLib.cpp')
+  
+C:\Users\12527\source\repos\GeoAlgorithm\GeoAlgorithmLib\GeoAlgorithmLib.cpp(55,9): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  (compiling source file '/GeoAlgorithmLib.cpp')
+  
+C:\Users\12527\source\repos\GeoAlgorithm\GeoAlgorithmLib\GeoAlgorithmLib.cpp(54,17): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  (compiling source file '/GeoAlgorithmLib.cpp')
+  
+C:\Users\12527\source\repos\GeoAlgorithm\GeoAlgorithmLib\GeoAlgorithmLib.cpp(90,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file '/GeoAlgorithmLib.cpp')
+  
+C:\Users\12527\source\repos\GeoAlgorithm\GeoAlgorithmLib\GeoAlgorithmLib.cpp(141,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file '/GeoAlgorithmLib.cpp')
+  
+C:\Users\12527\source\repos\GeoAlgorithm\GeoAlgorithmLib\GeoAlgorithmLib.cpp(142,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  (compiling source file '/GeoAlgorithmLib.cpp')
+  
+C:\Users\12527\source\repos\GeoAlgorithm\GeoAlgorithmLib\GeoAlgorithmLib.cpp(145,21): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  (compiling source file '/GeoAlgorithmLib.cpp')
+  
+C:\Users\12527\source\repos\GeoAlgorithm\GeoAlgorithmLib\GeoAlgorithmLib.cpp(146,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  (compiling source file '/GeoAlgorithmLib.cpp')
+  
+C:\Users\12527\source\repos\GeoAlgorithm\GeoAlgorithmLib\GeoAlgorithmLib.cpp(147,19): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  (compiling source file '/GeoAlgorithmLib.cpp')
+  
+  Generating Code...
+     Creating library C:\Users\12527\source\repos\GeoAlgorithm\x64\Debug\GeoAlgorithmLib.lib and object C:\Users\12527\source\repos\GeoAlgorithm\x64\Debug\GeoAlgorithmLib.exp
+  GeoAlgorithmLib.vcxproj -> C:\Users\12527\source\repos\GeoAlgorithm\x64\Debug\GeoAlgorithmLib.dll
