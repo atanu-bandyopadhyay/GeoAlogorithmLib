@@ -1,22 +1,22 @@
 /* 
- * GeoAlgorithm - Indranil Ghosh Roy, Atanu Bandyopadhyay, Subhadeep Kanungo
+ * GeoAlgorithmLib - Indranil Ghosh Roy, Atanu Bandyopadhyay, Subhadeep Kanungo
  * 
  * Copyright (C) 2023-2024 EPFL SCI STI MM
  *
- * This file is part of GeoAlgorithm.
+ * This file is part of GeoAlgorithmLib.
  *
- * GeoAlgorithm is free software: you can redistribute it and/or modify
+ * GeoAlgorithmLib is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * GeoAlgorithm is distributed in the hope that it will be useful,
+ * GeoAlgorithmLib is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with TURNUS.  If not, see <http://www.gnu.org/licenses/>.
+ * along with GeoAlgorithmLib.  If not, see <http://www.gnu.org/licenses/>.
  * 
  * Additional permission under GNU GPL version 3 section 7
  * 
