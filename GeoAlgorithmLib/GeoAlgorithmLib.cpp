@@ -1,6 +1,6 @@
-/* 
+/*
  * GeoAlgorithmLib - Indranil Ghosh Roy, Atanu Bandyopadhyay, Subhadeep Kanungo
- * 
+ *
  * Copyright (C) 2023-2024 EPFL SCI STI MM
  *
  * This file is part of GeoAlgorithmLib.
@@ -17,17 +17,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with GeoAlgorithmLib.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Additional permission under GNU GPL version 3 section 7
- * 
+ *
  * If you modify this Program, or any covered work, by linking or combining it
- * with Eclipse (or a modified version of Eclipse or an Eclipse plugin or 
- * an Eclipse library), containing parts covered by the terms of the 
- * Eclipse Public License (EPL), the licensors of this Program grant you 
- * additional permission to convey the resulting work.  Corresponding Source 
- * for a non-source form of such a combination shall include the source code 
+ * with Eclipse (or a modified version of Eclipse or an Eclipse plugin or
+ * an Eclipse library), containing parts covered by the terms of the
+ * Eclipse Public License (EPL), the licensors of this Program grant you
+ * additional permission to convey the resulting work.  Corresponding Source
+ * for a non-source form of such a combination shall include the source code
  * for the parts of Eclipse libraries used as well as that of the  covered work.
- * 
+ *
  */
 #include "pch.h"
 #include "GeoAlgorithmLib.hpp"
@@ -131,22 +131,19 @@ float Det(float a, float b, float c, float d)
 float GetAngleBetweenTwoLine(Line2D l1, Line2D l2) {
     float a = l1.endPoint.x - l1.startPoint.x;
     float b = l1.endPoint.y - l1.startPoint.y;
-    //float c = l2.startPoint.x - l2.endPoint.x;
-    //float d = l2.startPoint.y - l2.endPoint.y;
+    
     float c = l2.endPoint.x - l2.startPoint.x;
     float d = l2.endPoint.y - l2.startPoint.y;
 
-    //
     float cos_angle, angle;
     float mag_v1 = sqrt(a * a + b * b);
     float mag_v2 = sqrt(c * c + d * d);
-    //
+    
     cos_angle = (a * c + b * d) / (mag_v1 * mag_v2);
     cos_angle = fmax(-1.0, fmin(1.0, cos_angle));
     angle = acos(cos_angle);
     angle = angle * (180.0 / 3.14159); // convert to degrees
-    //
-
+    
     return angle;
 }
 
@@ -289,8 +286,23 @@ GEOALGOEXPORT bool isPointOnLine(Vector3D p1, Vector3D p2, Vector3D p3) {
     return false;
 }
 
-GEOALGOEXPORT bool isPointInTriangle(const Vector3D& pt, const TriSurface& tri) {
+bool isSameSide(const Vector3D& p, const Vector3D& a, const Vector3D& b, const Vector3D& c) {
+    Vector3D ab = b - a;
+    Vector3D ac = c - a;
+    Vector3D ap = p - a;
 
+    Vector3D cross1 = ab.cross(ac);
+    Vector3D cross2 = ab.cross(ap);
+    Vector3D cross3 = ac.cross(ap);
+
+    float dot1 = cross1.dot(cross2);
+    float dot2 = cross1.dot(cross3);
+
+    return (dot1 >= 0 && dot2 >= 0) || (dot1 <= 0 && dot2 <= 0);
+}
+
+
+GEOALGOEXPORT bool isPointInTriangle(const Vector3D& pt, const TriSurface& tri) {    
     Vector3D v0 = tri.vt1 - tri.vt0;
     Vector3D v1 = tri.vt2 - tri.vt0;
     Vector3D v2 = pt - tri.vt0;
@@ -370,17 +382,13 @@ GEOALGOEXPORT bool linePlaneIntersection(Vector3D& contact, Vector3D RayPoint2, 
     Vector3D w = planePoint - rayOrigin;
 
     float d = normal.dot(v);
-    //if ( d == 0){
-    //	return false;
-    //}
-
+    
     float k = normal.dot(w) / d;
 
-    contact.x = rayOrigin.x + (k * v.x);//normalV.x);
-    contact.y = rayOrigin.y + (k * v.y);//(k*normalV.y);
-    contact.z = rayOrigin.z + (k * v.z);//(k*normalV.z);
+    contact.x = rayOrigin.x + (k * v.x);
+    contact.y = rayOrigin.y + (k * v.y);
+    contact.z = rayOrigin.z + (k * v.z);
 
-    //    if (fabs(planePoint.z - contact.z) < 0.001) {
     Vector3D cp;
     cp.x = contact.x;
     cp.y = contact.y;
@@ -393,7 +401,7 @@ GEOALGOEXPORT bool linePlaneIntersection(Vector3D& contact, Vector3D RayPoint2, 
     if (fabs(d1 - (d2 + d3)) < 0.01) {
         return true;
     }
-    //    }
+    //}
     return false;
 }
 
@@ -498,60 +506,84 @@ GEOALGOEXPORT bool findIntersectionPoints(const TriSurface& t1, const TriSurface
     tp13.z = t1.vt2.z;
 
     Vector3D normalV = getPlaneNormalFromThreePoints(tp21, tp22, tp23);
+    bool firstTime = true;
+    bool secondTime = true;
 
     if (!getPlaneIntersectionPoints(tp21, normalV, t1, l1_start, l1_end))
     {
+        firstTime = false;        
+    }
+
+         
+    Vector3D l2_start, l2_end;
+    Vector3D normalU = getPlaneNormalFromThreePoints(tp11, tp12, tp13);
+
+
+    if (!getPlaneIntersectionPoints(tp11, normalU, t2, l2_start, l2_end))
+    {
+        secondTime = false;        
+    }
+
+    if (!firstTime && !secondTime)
+    {
         return false;
     }
 
-    if (isTwoPointSame(l1_start, l1_end)) {
-        return false;
-    }
 
-    // Check intersection points with the edges of the second triangle
-    // TODO: Implement edge intersection checks
-    if (!isPointInTriangle(l1_start, t2) || !isPointInTriangle(l1_end, t2))
-    {
-        //recalculate with 2nd triangle 
-        Vector3D l2_start, l2_end;
-        Vector3D normalV = getPlaneNormalFromThreePoints(tp11, tp12, tp13);
-
-        if (!getPlaneIntersectionPoints(tp11, normalV, t2, l2_start, l2_end))
+    bool startFound = false;
+    bool endFound = false;
+    Vector3D newStart;
+    Vector3D newEnd;
+    if (firstTime) {
+        if (isPointInTriangle(l1_start, t1) && isPointInTriangle(l1_start, t2))
         {
-            return false;
+            startFound = true;
+            newStart = l1_start;
         }
 
-
-        if (isPointInTriangle(l2_start, t1) && isPointInTriangle(l2_start, t2) && !isTwoPointSame(l1_start, l2_start))
+        if (isPointInTriangle(l1_end, t1) && isPointInTriangle(l1_end, t2))
         {
-            l1_start = l2_start;
+            endFound = true;
+            newEnd = l1_end;
         }
-        if (isPointInTriangle(l2_end, t1) && isPointInTriangle(l2_end, t2) && !isTwoPointSame(l1_end, l2_end))
+    }
+
+    if (secondTime) {
+        if (isPointInTriangle(l2_start, t1) && isPointInTriangle(l2_start, t2))
         {
-            l1_end = l2_end;
+            if (!startFound) {
+                startFound = true;
+                newStart = l2_start;
+            }
+            else {
+                if (!isTwoPointSame(l1_start, l2_start)) {
+                    endFound = true;
+                    newEnd = l2_start;
+                }
+            }
         }
 
-    }
+        if (isPointInTriangle(l2_end, t1) && isPointInTriangle(l2_end, t2))
+        {
+            if (!endFound) {
+                endFound = true;
+                newEnd = l2_end;
+            }
+            else {
+                if (!isTwoPointSame(l1_end, l2_end)) {
+                    newStart = l2_end;
+                    startFound = true;
 
+                }
 
-     // Check intersection points with the edges of the first triangle
-     // TODO: Implement edge intersection checks
-    if (isPointInTriangle(l1_start, t1) && (isPointInTriangle(l1_end, t1)))
+            }
+        }
+    }    
+
+    if (startFound && endFound)
     {
-        p1_found = true;
-    }
-
-    // Check intersection points with the edges of the second triangle
-    // TODO: Implement edge intersection checks
-    if (isPointInTriangle(l1_start, t2) && (isPointInTriangle(l1_end, t2)))
-    {
-        p2_found = true;
-    }
-
-    if (p1_found && p2_found)
-    {
-        pt1 = l1_start;
-        pt2 = l1_end;
+        pt1 = newStart;
+        pt2 = newEnd;
         return true;
     }
     return false;
