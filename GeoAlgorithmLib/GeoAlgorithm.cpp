@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2023-2024 EPFL SCI STI MM
  *
- * This file is part of GeoAlgorithmLib.
+ * This file is part of GeoAlgorithm.
  *
  * GeoAlgorithm is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
