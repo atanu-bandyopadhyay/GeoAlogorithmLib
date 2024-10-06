@@ -1,6 +1,6 @@
-/*
+/* 
  * GeoAlgorithmLib - Indranil Ghosh Roy, Atanu Bandyopadhyay, Subhadeep Kanungo
- *
+ * 
  * Copyright (C) 2023-2024 EPFL SCI STI MM
  *
  * This file is part of GeoAlgorithmLib.
@@ -17,17 +17,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with GeoAlgorithmLib.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * Additional permission under GNU GPL version 3 section 7
- *
+ * 
  * If you modify this Program, or any covered work, by linking or combining it
- * with Eclipse (or a modified version of Eclipse or an Eclipse plugin or
- * an Eclipse library), containing parts covered by the terms of the
- * Eclipse Public License (EPL), the licensors of this Program grant you
- * additional permission to convey the resulting work.  Corresponding Source
- * for a non-source form of such a combination shall include the source code
+ * with Eclipse (or a modified version of Eclipse or an Eclipse plugin or 
+ * an Eclipse library), containing parts covered by the terms of the 
+ * Eclipse Public License (EPL), the licensors of this Program grant you 
+ * additional permission to convey the resulting work.  Corresponding Source 
+ * for a non-source form of such a combination shall include the source code 
  * for the parts of Eclipse libraries used as well as that of the  covered work.
- *
+ * 
  */
 #include "pch.h"
 #include "GeoAlgorithmLib.hpp"
@@ -131,19 +131,22 @@ float Det(float a, float b, float c, float d)
 float GetAngleBetweenTwoLine(Line2D l1, Line2D l2) {
     float a = l1.endPoint.x - l1.startPoint.x;
     float b = l1.endPoint.y - l1.startPoint.y;
-    
+    //float c = l2.startPoint.x - l2.endPoint.x;
+    //float d = l2.startPoint.y - l2.endPoint.y;
     float c = l2.endPoint.x - l2.startPoint.x;
     float d = l2.endPoint.y - l2.startPoint.y;
 
+    //
     float cos_angle, angle;
     float mag_v1 = sqrt(a * a + b * b);
     float mag_v2 = sqrt(c * c + d * d);
-    
+    //
     cos_angle = (a * c + b * d) / (mag_v1 * mag_v2);
     cos_angle = fmax(-1.0, fmin(1.0, cos_angle));
     angle = acos(cos_angle);
     angle = angle * (180.0 / 3.14159); // convert to degrees
-    
+    //
+
     return angle;
 }
 
@@ -280,29 +283,85 @@ GEOALGOEXPORT bool isPointOnLine(Vector3D p1, Vector3D p2, Vector3D p3) {
     float d1 = GetDistanceOf3DVector(p1, p2);
     float d2 = GetDistanceOf3DVector(p1, p3);
     float d3 = GetDistanceOf3DVector(p2, p3);
-    if (fabs(d3 - (d1 + d2)) < 0.001) {
+    if (fabs(d3 - (d1 + d2)) < 0.1) {
         return true;
     }
     return false;
 }
 
-bool isSameSide(const Vector3D& p, const Vector3D& a, const Vector3D& b, const Vector3D& c) {
+float triangleArea(const Vector3D& a, const Vector3D& b, const Vector3D& c) {
     Vector3D ab = b - a;
     Vector3D ac = c - a;
+    Vector3D norm = ab.cross(ac).normalize();
+    return 0.5f * norm.x + 0.5f * norm.y + 0.5f * norm.y; // Area = 0.5 * |AB x AC|
+}
+
+bool isPointInTriangleArea(const Vector3D& p, const Vector3D& a, const Vector3D& b, const Vector3D& c) {
+    float areaABC = triangleArea(a, b, c);
+    float areaABP = triangleArea(a, b, p);
+    float areaACP = triangleArea(a, c, p);
+    float areaBCP = triangleArea(b, c, p);
+
+    // The point is inside the triangle if the sum of areas of the sub-triangles equals the area of the triangle
+    return (areaABP + areaACP + areaBCP) <= areaABC;
+}
+
+Vector3D calculateNormal(const Vector3D& a, const Vector3D& b, const Vector3D& c) {
+    Vector3D ab = b - a;
+    Vector3D ac = c - a;
+    return ab.cross(ac).normalize(); // Normal vector of the triangle
+}
+
+bool isSameSide(const Vector3D& p, const Vector3D& a, const Vector3D& b, const Vector3D& c) {
+    Vector3D normal = calculateNormal(a, b, c);
+    float d = normal.dot(a);
+    float planeValueP = normal.dot(p) - d;
+
+    if (planeValueP > 0) return false;  // P is on the positive side of the plane
+    // Check if point P is on the same side of each triangle edge
+
+
+    Vector3D ab = b - a;
     Vector3D ap = p - a;
+    Vector3D ac = c - a;
 
-    Vector3D cross1 = ab.cross(ac);
-    Vector3D cross2 = ab.cross(ap);
-    Vector3D cross3 = ac.cross(ap);
+    // Using cross products to determine the side of the edges
+    Vector3D cross1 = normal.cross(ab); // Cross product of normal and edge AB
+    Vector3D cross2 = normal.cross(ac); // Cross product of normal and edge AC
+    Vector3D cross3 = normal.cross(c - b); // Cross product of normal and edge BC
 
-    float dot1 = cross1.dot(cross2);
-    float dot2 = cross1.dot(cross3);
+    float side1 = cross1.dot(ap);
+    float side2 = cross2.dot(p - b);
+    float side3 = cross3.dot(p - c);
 
-    return (dot1 >= 0 && dot2 >= 0) || (dot1 <= 0 && dot2 <= 0);
+    // Point is inside if all dot products are non-negative (or non-positive)
+    return ((side1 >= 0 && side2 >= 0 && side3 >= 0) || (side1 <= 0 && side2 <= 0 && side3 <= 0));
+}
+
+bool isPointInTriangleNew(const Vector3D& p, const Vector3D& a, const Vector3D& b, const Vector3D& c) {
+    Vector3D v0 = b - a;
+    Vector3D v1 = c - a;
+    Vector3D v2 = p - a;
+
+    float d00 = v0.dot(v0);
+    float d01 = v0.dot(v1);
+    float d11 = v1.dot(v1);
+    float d20 = v2.dot(v0);
+    float d21 = v2.dot(v1);
+
+    float denom = d00 * d11 - d01 * d01;
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.0f - v - w;
+
+    // Check if the point is in the triangle
+    return (u >= 0) && (v >= 0) && (w >= 0);
 }
 
 
-GEOALGOEXPORT bool isPointInTriangle(const Vector3D& pt, const TriSurface& tri) {    
+GEOALGOEXPORT bool isPointInTriangle(const Vector3D& pt, const TriSurface& tri) {
+    //return isPointInTriangleNew(pt, tri.vt0, tri.vt1, tri.vt2);
+    //return isSameSide(pt, tri.vt0, tri.vt1, tri.vt2);
     Vector3D v0 = tri.vt1 - tri.vt0;
     Vector3D v1 = tri.vt2 - tri.vt0;
     Vector3D v2 = pt - tri.vt0;
@@ -370,9 +429,9 @@ GEOALGOEXPORT Vector3D getPlaneNormalFromThreePoints(Vector3D p1, Vector3D p2, V
     Vector3D dirY = p3 - p1;
     Vector3D dirZ = dirX.cross(dirY);
     Vector3D unitZ = dirZ.normalize();
-    unitZ.x = -unitZ.x;
-    unitZ.y = -unitZ.y;
-    unitZ.z = -unitZ.z;
+   // unitZ.x = -unitZ.x;
+   // unitZ.y = -unitZ.y;
+   // unitZ.z = -unitZ.z;
     return unitZ;
 }
 
@@ -382,25 +441,29 @@ GEOALGOEXPORT bool linePlaneIntersection(Vector3D& contact, Vector3D RayPoint2, 
     Vector3D w = planePoint - rayOrigin;
 
     float d = normal.dot(v);
-    
+    //if ( d == 0){
+    //	return false;
+    //}
+
     float k = normal.dot(w) / d;
 
-    contact.x = rayOrigin.x + (k * v.x);
-    contact.y = rayOrigin.y + (k * v.y);
-    contact.z = rayOrigin.z + (k * v.z);
+    contact.x = rayOrigin.x + (k * v.x);//normalV.x);
+    contact.y = rayOrigin.y + (k * v.y);//(k*normalV.y);
+    contact.z = rayOrigin.z + (k * v.z);//(k*normalV.z);
 
-    Vector3D cp;
-    cp.x = contact.x;
-    cp.y = contact.y;
-    cp.z = contact.z;
+   // if (fabs(planePoint.z - contact.z) < 0.1) {
+        Vector3D cp;
+        cp.x = contact.x;
+        cp.y = contact.y;
+        cp.z = contact.z;
 
-    float d1 = GetDistanceOf3DVector(rayOrigin, RayPoint2);
-    float d2 = GetDistanceOf3DVector(rayOrigin, cp);
-    float d3 = GetDistanceOf3DVector(cp, RayPoint2);
+        float d1 = GetDistanceOf3DVector(rayOrigin, RayPoint2);
+        float d2 = GetDistanceOf3DVector(rayOrigin, cp);
+        float d3 = GetDistanceOf3DVector(cp, RayPoint2);
 
-    if (fabs(d1 - (d2 + d3)) < 0.01) {
-        return true;
-    }
+        if (fabs(d1 - (d2 + d3)) < 0.001) {
+            return true;
+        }
     //}
     return false;
 }
@@ -441,9 +504,9 @@ GEOALGOEXPORT bool getPlaneIntersectionPoints(Vector3D planeOrigin, Vector3D pla
             l1_start = intersectionP1;
             l1_end = intersectionP2;
         }
-        else {
-            f2 = false;
-        }
+        //else {
+        //    f2 = false;
+        //}
     }
 
     if (f1 && f3)
@@ -452,9 +515,9 @@ GEOALGOEXPORT bool getPlaneIntersectionPoints(Vector3D planeOrigin, Vector3D pla
             l1_start = intersectionP1;
             l1_end = intersectionP3;
         }
-        else {
-            f3 = false;
-        }
+        //else {
+        //    f3 = false;
+        //}
     }
 
     if (f2 && f3)
@@ -463,11 +526,24 @@ GEOALGOEXPORT bool getPlaneIntersectionPoints(Vector3D planeOrigin, Vector3D pla
             l1_start = intersectionP2;
             l1_end = intersectionP3;
         }
-        else {
-            f3 = false;
-        }
+        //else {
+        //    f3 = false;
+        //}
     }
     return true;
+}
+
+bool isPointOnEdge(Vector3D pt, TriSurface t1) {
+    //Line3D l1
+    bool f1 = isPointOnLine(pt, t1.vt0, t1.vt1);
+    bool f2 = isPointOnLine(pt, t1.vt1, t1.vt2);
+    bool f3 = isPointOnLine(pt, t1.vt2, t1.vt0);
+
+    if (f1 || f2 || f3)
+    {
+        return true;
+    }
+    return false;
 }
 
 GEOALGOEXPORT bool findIntersectionPoints(const TriSurface& t1, const TriSurface& t2, Vector3D& pt1, Vector3D& pt2) {
@@ -511,29 +587,40 @@ GEOALGOEXPORT bool findIntersectionPoints(const TriSurface& t1, const TriSurface
 
     if (!getPlaneIntersectionPoints(tp21, normalV, t1, l1_start, l1_end))
     {
-        firstTime = false;        
+        firstTime = false;
+        //return false;
     }
 
-         
+    //if (isTwoPointSame(l1_start, l1_end)) {
+    //    return false;
+    //}
+
+
+    // Check intersection points with the edges of the second triangle
+    // TODO: Implement edge intersection checks
+    //if (!isPointInTriangle(l1_start, t2) || !isPointInTriangle(l1_end, t2))
+    //{
+        //recalculate with 2nd triangle 
     Vector3D l2_start, l2_end;
     Vector3D normalU = getPlaneNormalFromThreePoints(tp11, tp12, tp13);
 
-
+    
     if (!getPlaneIntersectionPoints(tp11, normalU, t2, l2_start, l2_end))
     {
-        secondTime = false;        
+        secondTime = false;
+        //return false;
     }
 
     if (!firstTime && !secondTime)
     {
         return false;
     }
-
-
+        
     bool startFound = false;
     bool endFound = false;
     Vector3D newStart;
     Vector3D newEnd;
+
     if (firstTime) {
         if (isPointInTriangle(l1_start, t1) && isPointInTriangle(l1_start, t2))
         {
@@ -541,10 +628,32 @@ GEOALGOEXPORT bool findIntersectionPoints(const TriSurface& t1, const TriSurface
             newStart = l1_start;
         }
 
+        if (!startFound) {
+            if (isPointInTriangle(l1_start, t1))
+            {
+                if (isPointOnEdge(l1_start, t2))
+                {
+                    startFound = true;
+                    newStart = l1_start;
+                }
+            }
+        }
+
         if (isPointInTriangle(l1_end, t1) && isPointInTriangle(l1_end, t2))
         {
             endFound = true;
             newEnd = l1_end;
+        }
+
+        if (!endFound) {
+            if (isPointInTriangle(l1_end, t1))
+            {
+                if (isPointOnEdge(l1_end, t2))
+                {
+                    endFound = true;
+                    newEnd = l1_end;
+                }
+            }
         }
     }
 
@@ -563,6 +672,17 @@ GEOALGOEXPORT bool findIntersectionPoints(const TriSurface& t1, const TriSurface
             }
         }
 
+        if (!startFound) {
+            if (isPointInTriangle(l2_start, t1))
+            {
+                if (isPointOnEdge(l2_start, t2))
+                {
+                    startFound = true;
+                    newStart = l2_start;
+                }
+            }
+        }
+
         if (isPointInTriangle(l2_end, t1) && isPointInTriangle(l2_end, t2))
         {
             if (!endFound) {
@@ -575,10 +695,22 @@ GEOALGOEXPORT bool findIntersectionPoints(const TriSurface& t1, const TriSurface
                     startFound = true;
 
                 }
-
+            
             }
         }
-    }    
+
+        if (!endFound) {
+            if (isPointInTriangle(l2_end, t1))
+            {
+                if (isPointOnEdge(l2_end, t2))
+                {
+                    endFound = true;
+                    newEnd = l2_end;
+                }
+            }
+        }
+    }
+    
 
     if (startFound && endFound)
     {
@@ -587,4 +719,28 @@ GEOALGOEXPORT bool findIntersectionPoints(const TriSurface& t1, const TriSurface
         return true;
     }
     return false;
+}
+
+
+GEOALGOEXPORT int PositionOfThePoint(Vector3D origin, Vector3D normal, Vector3D point) {
+    // Calculate D using the plane origin and normal vector
+    double D = -(normal.x * origin.x +
+        normal.y * origin.y +
+        normal.z * origin.z);
+
+    // Calculate the value from the plane equation
+    double value = normal.x * point.x +
+        normal.y * point.y +
+        normal.z * point.z + D;
+
+    // Determine the position relative to the plane
+    if (value > 0) {
+        return 1;
+    }
+    else if (value < 0) {
+        return -1;
+    }
+    else {
+        return 0;
+    }
 }

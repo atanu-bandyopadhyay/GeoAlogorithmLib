@@ -117,6 +117,8 @@ class GEOALGOEXPORT TriSurface {
 public:
 	Vector3D vt0, vt1, vt2;
 
+	TriSurface(){}
+
 	TriSurface(const Vector3D& v0, const Vector3D& v1, const Vector3D& v2)
 	{
 		vt0 = v0;
@@ -204,3 +206,5 @@ GEOALGOEXPORT bool getPlaneIntersection(const TriSurface& t1, const TriSurface& 
 GEOALGOEXPORT bool findIntersectionPoints(const TriSurface& t1, const TriSurface& t2, Vector3D& pt1, Vector3D& pt2);
 GEOALGOEXPORT bool isTwoPointSame(Vector3D p1, Vector3D p2);
 GEOALGOEXPORT bool linePlaneIntersection(Vector3D& contact, Vector3D RayPoint2, Vector3D rayOrigin, Vector3D normal, Vector3D planePoint);
+GEOALGOEXPORT int PositionOfThePoint(Vector3D origin, Vector3D normal, Vector3D point);
+GEOALGOEXPORT Vector3D getPlaneNormalFromThreePoints(Vector3D p1, Vector3D p2, Vector3D p3);
