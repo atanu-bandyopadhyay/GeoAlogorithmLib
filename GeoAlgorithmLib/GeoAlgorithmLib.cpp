@@ -104,6 +104,52 @@ Line2D parallelLineWithOffset(Line2D lineOrig, float offset, bool opposite)
     return parallelLine;
 }
 
+GEOALGOEXPORT bool isEar(const TriSurface& tri, const std::vector<Vector3D>& points) {
+    for (const Vector3D& pt : points) {        
+        if (isTwoPointSame(pt, tri.vt0) || isTwoPointSame(pt, tri.vt1) || isTwoPointSame(pt, tri.vt2))
+        {
+            continue;
+        }
+        if (isPointInTriangle(pt, tri) || isPointOnEdge(pt, tri)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::vector<TriSurface> earClipping(const std::vector<Vector3D>& polygon) {
+    std::vector<Vector3D> points = polygon;
+    std::vector<TriSurface> triangles;
+
+    while (points.size() > 3) {
+        bool foundEar = false;
+
+        for (size_t i = 0; i < points.size(); ++i) {
+            size_t prev = (i + points.size() - 1) % points.size();
+            size_t next = (i + 1) % points.size();
+
+            TriSurface tri = { points[prev], points[i], points[next] };
+            if (isEar(tri, points)) {
+                triangles.push_back(tri);
+                points.erase(points.begin() + i); // Remove the ear vertex
+                foundEar = true;
+                break; // Restart the loop since the points vector has changed
+            }
+        }
+
+        if (!foundEar) {            
+            break;
+        }
+    }
+
+    // Add the remaining triangle
+    if (points.size() == 3) {
+        triangles.push_back({ points[0], points[1], points[2] });
+    }
+
+    return triangles;
+}
+
 GEOALGOEXPORT bool isTwoPointSame2D(Vector2D p1, Vector2D p2) {
     if ((fabs(p1.x - p2.x) < epsilon_intersection) && (fabs(p1.y - p2.y) < epsilon_intersection)) {
         return true;
@@ -744,3 +790,6 @@ GEOALGOEXPORT int PositionOfThePoint(Vector3D origin, Vector3D normal, Vector3D 
         return 0;
     }
 }
+
+
+
