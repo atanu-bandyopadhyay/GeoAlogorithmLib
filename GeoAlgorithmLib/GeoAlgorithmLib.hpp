@@ -193,6 +193,7 @@ public:
 };
 
 float dotProduct(Vector2D p1, Vector2D p2);
+GEOALGOEXPORT bool isPointOnEdge(Vector3D pt, TriSurface t1);
 GEOALGOEXPORT bool isEar(const TriSurface& tri, const std::vector<Vector3D>& points);
 GEOALGOEXPORT Vector2D getProjectedPointOnLine(Vector2D v1, Vector2D v2, Vector2D p);
 GEOALGOEXPORT Vector3D GetVector3D(Vector3D point1, Vector3D point2);

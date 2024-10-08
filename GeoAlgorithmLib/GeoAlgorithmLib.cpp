@@ -579,7 +579,7 @@ GEOALGOEXPORT bool getPlaneIntersectionPoints(Vector3D planeOrigin, Vector3D pla
     return true;
 }
 
-bool isPointOnEdge(Vector3D pt, TriSurface t1) {
+GEOALGOEXPORT bool isPointOnEdge(Vector3D pt, TriSurface t1) {
     //Line3D l1
     bool f1 = isPointOnLine(pt, t1.vt0, t1.vt1);
     bool f2 = isPointOnLine(pt, t1.vt1, t1.vt2);
